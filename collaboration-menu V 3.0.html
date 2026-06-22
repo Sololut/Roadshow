@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collaboration types</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F2F0EB;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: 390px;
+    background: #FAFAF8;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.10);
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #3a3a3a;
+    letter-spacing: 0.01em;
+  }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  .status-icons svg { width: 14px; height: 14px; }
+
+  /* ── App header ── */
+  .app-header {
+    padding: 1rem 1.25rem 1rem;
+    border-bottom: 0.5px solid rgba(0,0,0,0.09);
+  }
+  .app-header h1 { font-size: 18px; font-weight: 500; color: #1a1a1a; letter-spacing: -0.02em; }
+  .app-header p  { font-size: 13px; color: #777; margin-top: 4px; line-height: 1.5; }
+
+  .partners-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .partner-badge {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px 5px 6px; border-radius: 20px;
+    border: 0.5px solid rgba(0,0,0,0.10); background: #fff;
+    font-size: 11px; color: #444; font-weight: 500;
+  }
+  .partner-logo {
+    width: 22px; height: 22px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+  .logo-uni { background: #E1F5EE; }
+  .logo-uni svg path, .logo-uni svg rect, .logo-uni svg polygon { fill: #0F6E56; }
+  .logo-sme { background: #E6F1FB; }
+  .logo-sme svg path, .logo-sme svg rect, .logo-sme svg polygon { fill: #185FA5; }
+  .logo-intl { background: #EEEDFE; }
+  .logo-intl svg path, .logo-intl svg rect, .logo-intl svg circle,
+  .logo-intl svg ellipse, .logo-intl svg line { fill: none; stroke: #534AB7; stroke-width: 1.5; stroke-linecap: round; }
+
+  /* ── Category header ── */
+  .category { border-bottom: 0.5px solid rgba(0,0,0,0.09); }
+
+  .cat-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 1.25rem;
+    cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+  .cat-head:hover  { background: rgba(0,0,0,0.02); }
+  .cat-head:active { background: rgba(0,0,0,0.04); }
+
+  .cat-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  .cat-label {
+    flex: 1; font-size: 13px; font-weight: 500; color: #1a1a1a; letter-spacing: -0.01em;
+  }
+
+  .cat-count {
+    font-size: 11px; color: #aaa;
+    background: rgba(0,0,0,0.05); border-radius: 20px;
+    padding: 2px 7px; font-weight: 400;
+  }
+
+  .cat-chevron {
+    font-size: 12px; color: #bbb;
+    transition: transform 0.22s ease; flex-shrink: 0;
+  }
+
+  .category.open .cat-chevron { transform: rotate(90deg); }
+
+  /* Category body — wraps the item list */
+  .cat-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.28s ease;
+    opacity: 0;
+  }
+  .category.open .cat-body { max-height: 2400px; opacity: 1; }
+
+  /* First category is always visually "open" — no chevron, no toggle */
+  .category.always-open .cat-head { cursor: default; }
+  .category.always-open .cat-head:hover { background: none; }
+  .category.always-open .cat-chevron { display: none; }
+  .category.always-open .cat-body { max-height: 2400px; opacity: 1; }
+
+  /* ── Menu items ── */
+  .item { border-bottom: 0.5px solid rgba(0,0,0,0.06); }
+  .item:last-child { border-bottom: none; }
+
+  .item-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 1.25rem 12px 2.5rem;
+    cursor: pointer; user-select: none;
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .item-head:hover  { background: rgba(0,0,0,0.015); }
+  .item-head:active { background: rgba(0,0,0,0.035); }
+
+  .item-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 15px;
+  }
+
+  .item-text  { flex: 1; min-width: 0; }
+  .item-title { font-size: 13.5px; font-weight: 500; color: #1a1a1a; }
+  .item-sub   { font-size: 11.5px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .item-chevron {
+    font-size: 12px; color: #ccc;
+    transition: transform 0.22s ease; flex-shrink: 0;
+  }
+  .item.open .item-chevron { transform: rotate(90deg); }
+
+  .item-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.25s ease;
+    opacity: 0;
+  }
+  .item.open .item-body { max-height: 480px; opacity: 1; }
+
+  .item-body-inner {
+    padding: 2px 1.25rem 1rem 5.6rem;
+  }
+
+  .item-desc {
+    font-size: 12.5px; color: #555; line-height: 1.65;
+  }
+
+  .example-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 10px; font-size: 12px; color: #185FA5;
+    text-decoration: none;
+    border-bottom: 0.5px solid #b5d4f4; padding-bottom: 1px;
+  }
+  .example-link:hover { color: #0c447c; border-color: #0c447c; }
+  .example-link i { font-size: 11px; }
+
+  .contact-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding-top: 9px;
+    border-top: 0.5px solid rgba(0,0,0,0.07);
+  }
+  .contact-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #E6F1FB; display: flex; align-items: center;
+    justify-content: center; font-size: 9px; font-weight: 600;
+    color: #185FA5; flex-shrink: 0; letter-spacing: -0.02em;
+  }
+  .contact-info  { display: flex; flex-direction: column; gap: 1px; }
+  .contact-label { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 0.05em; }
+  .contact-name  { font-size: 11.5px; color: #333; font-weight: 500; }
+  .contact-email {
+    font-size: 11px; color: #185FA5; text-decoration: none;
+    border-bottom: 0.5px solid #b5d4f4; padding-bottom: 1px;
+  }
+  .contact-email:hover { color: #0c447c; }
+
+  /* ── Home bar ── */
+  .home-bar { display: flex; justify-content: center; padding: 10px 0 16px; }
+  .home-pill { width: 120px; height: 5px; background: rgba(0,0,0,0.13); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 14 14" fill="none"><rect x="0" y="8" width="2.5" height="6" rx="0.5" fill="#3a3a3a"/><rect x="3.5" y="5.5" width="2.5" height="8.5" rx="0.5" fill="#3a3a3a"/><rect x="7" y="2.5" width="2.5" height="11.5" rx="0.5" fill="#3a3a3a"/><rect x="10.5" y="0" width="2.5" height="14" rx="0.5" fill="#3a3a3a"/></svg>
+      <svg viewBox="0 0 16 12" fill="none" style="width:16px;height:12px"><path d="M8 9.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z" fill="#3a3a3a"/><path d="M5 7.2A4.5 4.5 0 0 1 8 6a4.5 4.5 0 0 1 3 1.2" stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M2.5 4.5A7.8 7.8 0 0 1 8 2.5a7.8 7.8 0 0 1 5.5 2" stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M0.5 2A10.8 10.8 0 0 1 8 0a10.8 10.8 0 0 1 7.5 2" stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+      <svg viewBox="0 0 22 12" fill="none" style="width:22px;height:12px"><rect x="0.5" y="0.5" width="18" height="11" rx="3" stroke="#3a3a3a" stroke-width="1"/><rect x="2" y="2" width="13" height="8" rx="1.5" fill="#3a3a3a"/><path d="M19.5 4v4a1.5 1.5 0 0 0 0-4Z" fill="#3a3a3a"/></svg>
+    </div>
+  </div>
+
+  <!-- App header -->
+  <div class="app-header">
+    <h1>Collaboration types</h1>
+    <p>Ways universities, SMEs and international companies can work together.</p>
+    <div class="partners-row">
+      <div class="partner-badge">
+        <div class="partner-logo logo-uni">
+          <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 13,4.5 13,5.5 7,9 1,5.5 1,4.5"/><rect x="3" y="9" width="2" height="4" rx="0.5"/><rect x="9" y="9" width="2" height="4" rx="0.5"/><rect x="5" y="9.5" width="4" height="3.5" rx="0.5"/><rect x="11.5" y="5.5" width="1" height="5" rx="0.5"/></svg>
+        </div>University
+      </div>
+      <div class="partner-badge">
+        <div class="partner-logo logo-sme">
+          <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="6" width="12" height="7" rx="0.8" fill="#185FA5"/><path d="M3 6V4.5C3 2.8 4.3 1.5 6 1.5h2C9.7 1.5 11 2.8 11 4.5V6" stroke="#185FA5" stroke-width="1.3" fill="none"/><rect x="5.5" y="8" width="3" height="2.5" rx="0.5" fill="#FAFAF8"/></svg>
+        </div>SME
+      </div>
+      <div class="partner-badge">
+        <div class="partner-logo logo-intl">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#534AB7" stroke-width="1.3"/><ellipse cx="7" cy="7" rx="2.5" ry="5.5" stroke="#534AB7" stroke-width="1.3"/><line x1="1.5" y1="7" x2="12.5" y2="7" stroke="#534AB7" stroke-width="1.3"/><line x1="2" y1="4.5" x2="12" y2="4.5" stroke="#534AB7" stroke-width="1.3"/><line x1="2" y1="9.5" x2="12" y2="9.5" stroke="#534AB7" stroke-width="1.3"/></svg>
+        </div>Int'l co.
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <div id="menu"></div>
+
+  <div class="home-bar"><div class="home-pill"></div></div>
+</div>
+
+<script>
+const contact = { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" };
+
+const categories = [
+  {
+    label: "University–Company Co-Collaborations",
+    dot: "#0F6E56",
+    alwaysOpen: true,
+    items: [
+      {
+        icon: "fa-seedling", iconColor: "#0F6E56", bgColor: "#E1F5EE",
+        title: "Co-Creation",
+        sub: "Build new concepts jointly from the ground up",
+        desc: "Partners jointly create something entirely new — a product, service, or concept — by combining university research capacity with company knowledge and market insight. Co-creation is collaborative from day one, with shared ownership of both the process and the outcome.",
+        linkLabel: "Example from LUT",
+        link: "https://www.lut.fi/en/research",
+        contact: { name: "Mehran Rezaei", email: "mehran.rezaei@lut.fi", initials: "MR" }
+      },
+      {
+        icon: "fa-lightbulb", iconColor: "#854F0B", bgColor: "#FAEEDA",
+        title: "Co-Innovation",
+        sub: "Structured innovation combining science and industry",
+        desc: "A structured innovation process where university researchers and company teams work together to develop and test new solutions. Scientific methods meet industrial application — the result is innovation that is both technically rigorous and commercially viable.",
+        linkLabel: "Example from LUT",
+        link: "https://www.lut.fi/en/research",
+        contact: { name: "Mehran Rezaei", email: "mehran.rezaei@lut.fi", initials: "MR" }
+      },
+      {
+        icon: "fa-magnifying-glass-chart", iconColor: "#534AB7", bgColor: "#EEEDFE",
+        title: "Co-Research",
+        sub: "Shared academic and industrial research",
+        desc: "Joint academic and industrial research where both parties contribute expertise, data, and resources — and share findings. Often leads to publications, patents, or new knowledge with direct commercial potential. Builds deep long-term trust between partners.",
+        linkLabel: "Example from LUT",
+        link: "https://www.lut.fi/en/research",
+        contact: { name: "Mehran Rezaei", email: "mehran.rezaei@lut.fi", initials: "MR" }
+      },
+      {
+        icon: "fa-flask-vial", iconColor: "#993556", bgColor: "#FBEAF0",
+        title: "Pilot Project / Proof of Concept",
+        sub: "Test an idea before committing to full development",
+        desc: "A short-term, focused collaboration to test whether a research idea or technology works in practice. Pilots reduce risk, generate early evidence, and create a clear go/no-go signal before committing to full-scale development or commercialisation.",
+        linkLabel: "Example from LUT",
+        link: "https://www.lut.fi/en/research",
+        contact: { name: "Mehran Rezaei", email: "mehran.rezaei@lut.fi", initials: "MR" }
+      }
+    ]
+  },
+  {
+    label: "Other Collaborations with University",
+    dot: "#185FA5",
+    alwaysOpen: false,
+    items: [
+      {
+        icon: "fa-building-columns", iconColor: "#185FA5", bgColor: "#E6F1FB",
+        title: "Access to Infrastructure & Testbeds",
+        sub: "Use university labs, tools, and facilities",
+        desc: "Companies gain access to university laboratories, testing equipment, computing resources, or specialised facilities for their own R&D. This is ideal for companies that need high-end infrastructure without the cost of ownership.",
+        linkLabel: "Services at LUT",
+        link: "https://www.lut.fi/en/companies/industrial-product-development",
+        contact: { name: "Mehran Rezaei", email: "mehran.rezaei@lut.fi", initials: "MR" }
+      },
+      {
+        icon: "fa-arrow-trend-up", iconColor: "#3B6D11", bgColor: "#EAF3DE",
+        title: "Research to Business (R2B)",
+        sub: "Apply research results to real-world challenges",
+        desc: "University research results are packaged and transferred to companies through structured processes, helping businesses apply new knowledge to real-world challenges. R2B bridges the gap between scientific output and commercial application.",
+        linkLabel: "Example from LUT",
+        link: "https://www.lut.fi/en/companies/innovation-services/projects",
+        contact: { name: "Jari Varis", email: "jari.varis@lut.fi", initials: "JV" }
+      },
+      {
+        icon: "fa-file-pen", iconColor: "#993C1D", bgColor: "#FAECE7",
+        title: "Commissioned Research",
+        sub: "Fund the university to solve a defined problem",
+        desc: "A company defines a specific research question and funds the university to investigate it. Results and IP rights are agreed in advance. Low administrative burden, clear deliverables, and fast turnaround for targeted knowledge needs.",
+        linkLabel: "Service at LUT",
+        link: "https://www.lut.fi/en/research/partnerships-and-cooperation/how-start-research-collaboration",
+        contact: { name: "Tanja Grönlund", email: "Tanja.Gronlund@lut.fi", initials: "TG" }
+      },
+      {
+        icon: "fa-graduation-cap", iconColor: "#854F0B", bgColor: "#FAEEDA",
+        title: "Thesis Projects",
+        sub: "A student solves your real challenge",
+        desc: "A student works on a real company challenge as their bachelor's or master's thesis, supervised by both a university professor and a company mentor. Companies receive fresh thinking and analytical depth; students gain meaningful industry experience.",
+        linkLabel: "Recruitment and Student Work",
+        link: "https://www.lut.fi/en/companies/recruitment-and-student-work",
+        contact: { name: "Elina Hannikainen-Himanen", email: "Elina.Hannikainen-Himanen@lut.fi", initials: "EH" }
+      },
+      {
+        icon: "fa-chalkboard-user", iconColor: "#534AB7", bgColor: "#EEEDFE",
+        title: "Continuing Education & Training",
+        sub: "University expertise delivered to your team",
+        desc: "Companies access customised training programs, courses, or executive education developed and delivered by university experts. This keeps your workforce at the frontier of knowledge relevant to your sector.",
+        linkLabel: "Service at LUT",
+        link: "https://elut.lut.fi/en/after-graduation/continuous-learning/continuing-education",
+        contact: { name: "Sari Valkeapää", email: "sari.valkeapaa@lut.fi", initials: "SV" }
+      }
+    ]
+  },
+  {
+    label: "Business-to-Business Collaborations",
+    dot: "#993556",
+    alwaysOpen: false,
+    items: [
+      {
+        icon: "fa-truck", iconColor: "#185FA5", bgColor: "#E6F1FB",
+        title: "Supply Chain & Subcontracting",
+        sub: "SMEs integrate into larger companies' value chains",
+        desc: "This type of collaboration focuses on building concrete business relationships between companies through supply chains. SMEs can become subcontractors or niche providers for larger firms, offering manufacturing, maintenance, logistics, or digital services. These partnerships are often long-term and form the backbone of regional industrial ecosystems.",
+        linkLabel: "Copper Industrial Park (Pori)",
+        link: "https://www.businesspori.fi/versatile-plots-and-zoning-possibilities/",
+        contact: { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" }
+      },
+      {
+        icon: "fa-microscope", iconColor: "#0F6E56", bgColor: "#E1F5EE",
+        title: "Piloting & Testing Projects",
+        sub: "Validate new solutions in real-life environments",
+        desc: "Piloting projects allow SMEs to demonstrate their technologies, services, or processes in collaboration with larger firms or public environments. These projects reduce risk, generate reference cases, and help refine solutions before broader deployment or commercialization.",
+        linkLabel: "Testbed Helsinki (City of Helsinki)",
+        link: "https://www.hel.fi/en/business-and-work/city-sized-testbed",
+        contact: { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" }
+      },
+      {
+        icon: "fa-screwdriver-wrench", iconColor: "#534AB7", bgColor: "#EEEDFE",
+        title: "Industrial Co-Development",
+        sub: "Jointly develop products, processes or industrial systems",
+        desc: "In co-development projects, companies move beyond transactional relationships and collaborate on innovation and development. This can include shared product development, process optimization, or designing new industrial concepts. The collaboration is often iterative and long-term, with shared learning and sometimes shared outcomes.",
+        linkLabel: "ECO3 (Nokia)",
+        link: "https://eco3.fi/en/eco3/",
+        contact: { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" }
+      },
+      {
+        icon: "fa-handshake", iconColor: "#3B6D11", bgColor: "#EAF3DE",
+        title: "Market Entry & Business Consortia",
+        sub: "Access new markets through joint offerings",
+        desc: "These projects bring companies together to improve their reach and competitiveness in new markets. Instead of acting alone, SMEs and larger companies form small consortia to jointly market, sell, or deliver solutions. This is especially valuable for internationalisation, where shared visibility and combined capabilities increase success.",
+        linkLabel: "SmartGIT (BusinessOulu)",
+        link: "https://www.businessoulu.com/en/about-us/programmes-and-projects/smart-growth-for-international-tourism-smartgit/",
+        contact: { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" }
+      },
+      {
+        icon: "fa-hand-holding-dollar", iconColor: "#854F0B", bgColor: "#FAEEDA",
+        title: "Investment Co-Creation Projects",
+        sub: "Co-design industrial investments with the city",
+        desc: "In these projects, investments are not predefined but co-designed. Companies collaborate with each other and with the city to define land use, infrastructure needs, and operational setups. This approach is common in large industrial or logistics developments and enables the creation of tailored environments that support multiple actors.",
+        linkLabel: "Tahkoluoto (Pori)",
+        link: "https://www.businesspori.fi/news/the-development-agreement-keeps-tahkoluoto-at-the-forefront-of-the-clean-transition/04/04/2024/",
+        contact: { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" }
+      },
+      {
+        icon: "fa-circle-nodes", iconColor: "#993556", bgColor: "#FBEAF0",
+        title: "Cluster & Network Projects",
+        sub: "Long-term collaboration within industry ecosystems",
+        desc: "Cluster projects bring together companies from the same or related sectors to collaborate continuously rather than through one-off projects. These networks support knowledge sharing, joint initiatives, visibility, and ecosystem growth. They often include regular events, shared development agendas, and collective positioning.",
+        linkLabel: "EnergyVaasa (Vaasa)",
+        link: "https://www.vaasa.fi/en/energyvaasa/",
+        contact: { name: "Helena Laitinen", email: "helena.laitinen@lappeenranta.fi", initials: "HL" }
+      }
+    ]
+  }
+];
+
+const menuEl = document.getElementById('menu');
+
+categories.forEach(cat => {
+  const catEl = document.createElement('div');
+  catEl.className = 'category' + (cat.alwaysOpen ? ' always-open' : '');
+
+  // Category header
+  const headEl = document.createElement('div');
+  headEl.className = 'cat-head';
+  headEl.innerHTML = `
+    <span class="cat-dot" style="background:${cat.dot}"></span>
+    <span class="cat-label">${cat.label}</span>
+    <span class="cat-count">${cat.items.length}</span>
+    <i class="fa-solid fa-chevron-right cat-chevron"></i>
+  `;
+
+  if (!cat.alwaysOpen) {
+    headEl.addEventListener('click', () => {
+      catEl.classList.toggle('open');
+    });
+  }
+
+  // Category body
+  const bodyEl = document.createElement('div');
+  bodyEl.className = 'cat-body';
+
+  // Items
+  cat.items.forEach(d => {
+    const itemEl = document.createElement('div');
+    itemEl.className = 'item';
+    itemEl.innerHTML = `
+      <div class="item-head">
+        <div class="item-icon" style="background:${d.bgColor}">
+          <i class="fa-solid ${d.icon}" style="color:${d.iconColor}"></i>
+        </div>
+        <div class="item-text">
+          <div class="item-title">${d.title}</div>
+          <div class="item-sub">${d.sub}</div>
+        </div>
+        <i class="fa-solid fa-chevron-right item-chevron"></i>
+      </div>
+      <div class="item-body">
+        <div class="item-body-inner">
+          <p class="item-desc">${d.desc}</p>
+          <a class="example-link" href="${d.link}" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>${d.linkLabel}
+          </a>
+          <div class="contact-row">
+            <div class="contact-avatar">${d.contact.initials}</div>
+            <div class="contact-info">
+              <span class="contact-label">Contact</span>
+              <span class="contact-name">${d.contact.name}</span>
+              <a class="contact-email" href="mailto:${d.contact.email}">${d.contact.email}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    itemEl.querySelector('.item-head').addEventListener('click', () => {
+      const isOpen = itemEl.classList.contains('open');
+      // close others within the same category only
+      bodyEl.querySelectorAll('.item.open').forEach(e => e.classList.remove('open'));
+      if (!isOpen) itemEl.classList.add('open');
+    });
+    bodyEl.appendChild(itemEl);
+  });
+
+  catEl.appendChild(headEl);
+  catEl.appendChild(bodyEl);
+  menuEl.appendChild(catEl);
+});
+</script>
+</body>
+</html>
